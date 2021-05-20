@@ -43,7 +43,6 @@ export class AuthController {
     );
 
     const jwtToken = this.authService.createAccessToken(validatedUser);
-
     response.cookie('accessToken', jwtToken);
     response.redirect(process.env.CLIENT_URL);
   }

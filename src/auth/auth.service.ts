@@ -79,7 +79,7 @@ export class AuthService {
   createAccessToken(userModel: UserEntity) {
     const accessToken = jwt.sign(
       { data: userModel, timestamp: Date.now() },
-      JwtConfig.tokenSecret,
+      process.env.JWT_SECRET,
       { expiresIn: JwtConfig.tokenExpiresIn }
     );
     return accessToken;

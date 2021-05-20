@@ -28,4 +28,20 @@ export class UserService {
 
     return newUser;
   }
+
+  public async accumulateMaskPoint(userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    user.maskPoint++;
+    await this.userRepository.save(user);
+  }
+
+  public async useMaskCoupon(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    user.maskPoint -= 5;
+    if (user.maskPoint < 0) {
+      throw new BadRequestException('mask point is less than 5');
+    }
+    await this.userRepository.save(user);
+  }
 }
