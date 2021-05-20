@@ -3,13 +3,16 @@ import axios from 'axios';
 import * as jwt from 'jsonwebtoken';
 import * as qs from 'querystring';
 import { JwtConfig, kakaoOAuthConfig } from 'src/common/config';
+import { UserEntity } from 'src/entity/user.entity';
+import CreateUserDTO from 'src/user/dto/create-user-request.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
   public CLIENT_ID: string;
   public CALLBACK_URI: string;
   public CLIENT_SECRET: string;
-  constructor() {
+  constructor(private readonly userService: UserService) {
     this.CLIENT_ID = process.env.KAKAO_CLIENT_ID;
     this.CALLBACK_URI = process.env.KAKAO_CALLBACK_URI;
     this.CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
@@ -38,7 +41,7 @@ export class AuthService {
       const { data: response } = await axios.post(
         accessTokenURI,
         query,
-        header,
+        header
       );
 
       return response.access_token;
@@ -61,13 +64,24 @@ export class AuthService {
 
     return userInfo;
   }
-  // createAccessToken(userModel: UserModel) {
-  //       const userResponseDTO = new UserResponseDTO(userModel);
-  //       const accessToken = jwt.sign(
-  //         { data: userResponseDTO, timestamp: Date.now() },
-  //         JwtConfig.tokenSecret,
-  //         { expiresIn: JwtConfig.tokenExpiresIn },
-  //       );
-  //       return accessToken;
-  //     }
+
+  async getOrCreateUser(userInfo: CreateUserDTO) {
+    const user = await this.userService.findUserById(userInfo.id);
+
+    if (!user) {
+      const newUser = await this.userService.createUser(userInfo);
+      return newUser;
+    }
+
+    return user;
+  }
+
+  createAccessToken(userModel: UserEntity) {
+    const accessToken = jwt.sign(
+      { data: userModel, timestamp: Date.now() },
+      JwtConfig.tokenSecret,
+      { expiresIn: JwtConfig.tokenExpiresIn }
+    );
+    return accessToken;
+  }
 }

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { kakaoOAuthConfig } from 'src/common/config';
+import CreateUserDTO from 'src/user/dto/create-user-request.dto';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -23,7 +24,6 @@ export class AuthController {
       AUTHORIZATION_URI +
       `?client_id=${CLIENT_ID}&redirect_uri=${CALLBACK_URI}` +
       '&response_type=code';
-    console.log(redirectURI);
     response.redirect(redirectURI);
   }
 
@@ -31,14 +31,20 @@ export class AuthController {
   async kakaoAuthRedirect(
     @Req() request: Request,
     @Query('code') code: string,
-    @Res() response: Response,
+    @Res() response: Response
   ) {
     if (!code) {
       throw new BadRequestException('code is required');
     }
     const accessToken = await this.authService.getAccessTokenFromKakao(code);
     const userInfo = await this.authService.getUserInfoFromKakao(accessToken);
+    const validatedUser = await this.authService.getOrCreateUser(
+      new CreateUserDTO(userInfo.id, userInfo.properties.nickname)
+    );
 
+    const jwtToken = this.authService.createAccessToken(validatedUser);
+
+    response.cookie('accessToken', jwtToken);
     response.redirect(process.env.CLIENT_URL);
   }
 }
