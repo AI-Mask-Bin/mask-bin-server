@@ -1,6 +1,7 @@
-import { Controller, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Patch, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { UserGuard } from 'src/common/guards/user.guard';
+import AccumulateMaskDTO from './dto/accumulate-request.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -9,9 +10,13 @@ export class UserController {
 
   @Patch('/accumulate')
   @UseGuards(new UserGuard())
-  async accumulateMaskPoint(@Req() request: Request) {
+  async accumulateMaskPoint(
+    @Req() request: Request,
+    @Body() body: AccumulateMaskDTO
+  ) {
     const { id } = request.user;
-    await this.userService.accumulateMaskPoint(id);
+    const { collectedMaskCount } = body;
+    await this.userService.accumulateMaskPoint(id, collectedMaskCount);
     return { result: 'success' };
   }
 

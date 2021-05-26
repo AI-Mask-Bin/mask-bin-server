@@ -20,4 +20,16 @@ export class UserEntity {
     default: 0,
   })
   maskPoint: number;
+
+  @Column({
+    type: 'int',
+    default: 0,
+  })
+  coupon: number;
+
+  @Column({
+    type: 'int',
+    default: 0,
+  })
+  usedCoupon: number;
 }
